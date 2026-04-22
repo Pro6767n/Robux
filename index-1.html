@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robux Satis - Güncel Fiyatlar</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #07090f;
+  color: #c8d8e8;
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 22px 14px 60px;
+}
+
+/* HEADER */
+.header { text-align: center; margin-bottom: 22px; }
+.logo-row {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.25);
+  border-radius: 40px; padding: 9px 20px; margin-bottom: 10px;
+}
+.title { font-size: 1.4rem; font-weight: 900; color: #00e5ff; letter-spacing: 2px; }
+.subtitle { font-size: 0.7rem; color: #4a6080; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
+.divline { width: 60px; height: 2px; background: linear-gradient(90deg,transparent,#00e5ff,transparent); margin: 8px auto 0; }
+
+/* BOX */
+.box {
+  background: #0c1220; border: 1px solid #1c2a3e; border-radius: 14px;
+  padding: 18px 15px; margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.box::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg,transparent,#00e5ff,transparent);
+}
+.sec-label {
+  font-size: 0.67rem; font-weight: 700; color: #00e5ff;
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.req { color: #ff4d6d; }
+
+/* CURRENCY BUTTONS */
+.cur-row { display: flex; gap: 9px; }
+.cur-btn {
+  flex: 1; padding: 11px 6px; border: 2px solid #1c2a3e; border-radius: 10px;
+  background: #111928; color: #4a6080; font-size: 0.88rem; font-weight: 800;
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transition: all 0.2s;
+}
+.cur-btn .flag { font-size: 1.25rem; }
+.cur-btn .hint { font-size: 0.55rem; opacity: 0.5; }
+.cur-btn.active { border-color: #00e5ff; color: #00e5ff; background: rgba(0,229,255,0.08); }
+.cur-btn:hover:not(.active) { border-color: rgba(0,229,255,0.3); color: #c8d8e8; }
+
+/* LOCK */
+.table-area { position: relative; }
+.lock {
+  position: absolute; inset: 0; z-index: 5;
+  background: rgba(7,9,15,0.93); border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+.lock.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+.lock-icon { font-size: 2.2rem; }
+.lock-msg { font-size: 0.78rem; color: #4a6080; text-align: center; line-height: 1.6; }
+.lock-arrow { font-size: 1.2rem; color: #00e5ff; }
+
+/* CARD */
+.card { background: #0c1220; border: 1px solid #1c2a3e; border-radius: 14px; overflow: hidden; }
+.card-top {
+  padding: 11px 15px; border-bottom: 1px solid #1c2a3e;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-top-left { font-size: 0.64rem; font-weight: 700; color: #00e5ff; letter-spacing: 2px; display: flex; align-items: center; gap: 6px; }
+.dot { width: 6px; height: 6px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 5px #00ff88; }
+.badge { font-size: 0.72rem; font-weight: 800; color: #00e5ff; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); border-radius: 20px; padding: 3px 11px; }
+
+/* TABLE */
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+thead tr { background: #0a1624; }
+th {
+  padding: 10px 8px; font-size: 0.58rem; font-weight: 700; color: #00e5ff;
+  text-transform: uppercase; letter-spacing: 0.7px;
+  border-bottom: 1px solid rgba(0,229,255,0.12);
+  text-align: center; word-break: break-word;
+}
+th:first-child { text-align: left; padding-left: 13px; }
+
+tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer; transition: background 0.15s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(0,229,255,0.06); }
+
+td { padding: 13px 8px; font-size: 0.91rem; font-weight: 600; text-align: center; vertical-align: middle; }
+td:first-child { text-align: left; padding-left: 13px; }
+
+.rbx { font-size: 0.95rem; font-weight: 800; color: #e8f4ff; }
+.gp  { color: #7ecfff; font-size: 0.88rem; }
+
+.v-azn { color: #00ff88; font-weight: 700; }
+.v-tl  { color: #7ecfff; font-weight: 700; }
+.v-usd { color: #ffd700; font-weight: 700; }
+
+/* DISCORD MODAL */
+.modal-bg {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.75); align-items: center; justify-content: center; padding: 20px;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: #0c1220; border: 1px solid #1c2a3e; border-radius: 16px;
+  padding: 24px 20px; max-width: 380px; width: 100%; position: relative;
+  border-top: 2px solid #00e5ff;
+}
+.modal-close {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none; color: #4a6080; font-size: 1.2rem; cursor: pointer;
+}
+.modal-close:hover { color: #c8d8e8; }
+.modal-title { font-size: 1rem; font-weight: 800; color: #00e5ff; margin-bottom: 6px; }
+.modal-rbx { font-size: 0.8rem; color: #4a6080; margin-bottom: 16px; }
+.modal-rbx b { color: #00ff88; }
+.discord-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #5865F2; color: #fff;
+  border: none; border-radius: 10px; padding: 13px 18px;
+  font-size: 0.95rem; font-weight: 800; cursor: pointer; width: 100%;
+  text-decoration: none; margin-bottom: 10px; transition: background 0.2s;
+}
+.discord-btn:hover { background: #4752C4; }
+.discord-icon { font-size: 1.2rem; }
+.wa-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: rgba(37,211,102,0.12); color: #25d366;
+  border: 1px solid rgba(37,211,102,0.35); border-radius: 10px; padding: 12px 18px;
+  font-size: 0.9rem; font-weight: 800; cursor: pointer; width: 100%;
+  text-decoration: none; margin-bottom: 14px; transition: all 0.2s;
+}
+.wa-btn:hover { background: rgba(37,211,102,0.22); border-color: rgba(37,211,102,0.6); }
+.modal-note {
+  background: rgba(0,229,255,0.06); border: 1px solid rgba(0,229,255,0.15);
+  border-radius: 10px; padding: 12px 14px;
+  font-size: 0.82rem; color: #90b0c8; line-height: 1.6;
+}
+.modal-note b { color: #00e5ff; }
+
+/* CALCULATOR */
+.calc-area { margin-bottom: 14px; }
+.calc-inner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.calc-input {
+  flex: 1; min-width: 120px; padding: 12px 14px;
+  background: #111928; border: 2px solid #1c2a3e; border-radius: 10px;
+  color: #e8f4ff; font-size: 1rem; font-weight: 700;
+  outline: none; transition: border-color 0.2s;
+}
+.calc-input:focus { border-color: #00e5ff; }
+.calc-input::placeholder { color: #2a3a50; font-weight: 400; }
+.calc-result {
+  background: #111928; border: 2px solid #1c2a3e; border-radius: 10px;
+  padding: 12px 14px; flex: 1; min-width: 120px;
+  font-size: 0.9rem; font-weight: 700; color: #4a6080; min-height: 46px;
+  display: flex; align-items: center;
+}
+.calc-result.filled { border-color: rgba(0,255,136,0.3); color: #00ff88; }
+.calc-hint { font-size: 0.72rem; color: #4a6080; margin-top: 8px; line-height: 1.5; }
+.calc-hint b { color: #00e5ff; }
+
+/* SECOND CURRENCY */
+.sec2-label {
+  font-size: 0.67rem; font-weight: 700; color: #4a6080;
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 11px;
+}
+.sec2-label span { color: #00e5ff; }
+.cur2-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cur2-btn {
+  flex: 1; min-width: 70px; padding: 10px 5px;
+  border: 2px solid #1c2a3e; border-radius: 10px;
+  background: #111928; color: #4a6080; font-size: 0.82rem; font-weight: 800;
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transition: all 0.2s;
+}
+.cur2-btn .flag { font-size: 1.15rem; }
+.cur2-btn .hint { font-size: 0.53rem; opacity: 0.5; }
+.cur2-btn.active { border-color: #00e5ff; color: #00e5ff; background: rgba(0,229,255,0.08); }
+.cur2-btn:hover:not(.active) { border-color: rgba(0,229,255,0.3); color: #c8d8e8; }
+.cur2-none {
+  flex: 1; min-width: 70px; padding: 10px 5px;
+  border: 2px solid rgba(255,77,109,0.25); border-radius: 10px;
+  background: rgba(255,77,109,0.04); color: rgba(255,77,109,0.5);
+  font-size: 0.82rem; font-weight: 800; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transition: all 0.2s;
+}
+.cur2-none.active { border-color: #ff4d6d; color: #ff4d6d; background: rgba(255,77,109,0.08); }
+
+.disabled-section { opacity: 0.35; pointer-events: none; }
+
+/* FOOTER */
+.footer { text-align: center; margin-top: 24px; color: #4a6080; font-size: 0.76rem; line-height: 1.8; }
+.footer b { color: #00e5ff; }
+
+/* WHATSAPP BANNER */
+.wa-banner {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  background: linear-gradient(135deg, rgba(37,211,102,0.1), rgba(37,211,102,0.05));
+  border: 1px solid rgba(37,211,102,0.3);
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;
+  text-decoration: none; transition: all 0.2s; cursor: pointer;
+}
+.wa-banner:hover { background: linear-gradient(135deg, rgba(37,211,102,0.18), rgba(37,211,102,0.1)); border-color: rgba(37,211,102,0.55); transform: translateY(-1px); }
+.wa-icon { font-size: 2rem; flex-shrink: 0; }
+.wa-text { text-align: left; }
+.wa-title { font-size: 0.9rem; font-weight: 800; color: #25d366; letter-spacing: 0.5px; }
+.wa-sub { font-size: 0.72rem; color: #4a6080; margin-top: 2px; }
+.wa-arrow { font-size: 1.1rem; color: #25d366; margin-left: auto; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-row">
+    <span style="font-size:22px">&#x1F48E;</span>
+    <div>
+      <div class="title">ROBUX SATIS</div>
+      <div class="subtitle">Resmi Qiymet Cedveli</div>
+    </div>
+  </div>
+  <div class="divline"></div>
+</div>
+
+<div class="box">
+  <div class="sec-label"><span class="req">&#x25CF;</span> Valyuta sec (mecburi)</div>
+  <div class="cur-row">
+    <button class="cur-btn" data-c="AZN" onclick="pick('AZN')">
+      <span class="flag">&#x1F1E6;&#x1F1FF;</span>AZN<span class="hint">Manat</span>
+    </button>
+    <button class="cur-btn" data-c="TL" onclick="pick('TL')">
+      <span class="flag">&#x1F1F9;&#x1F1F7;</span>TL<span class="hint">Turk Lirasi</span>
+    </button>
+    <button class="cur-btn" data-c="USD" onclick="pick('USD')">
+      <span class="flag">&#x1F1FA;&#x1F1F8;</span>USD<span class="hint">Dollar</span>
+    </button>
+  </div>
+</div>
+
+<div class="box disabled-section" id="box2">
+  <div class="sec2-label">&#x2B07; Basqa valyutada da goster <span>(istege bagli)</span></div>
+  <div class="cur2-row" id="cur2row"></div>
+</div>
+
+<div class="table-area">
+  <div class="lock" id="lock">
+    <div class="lock-arrow">&#x2191;</div>
+    <div class="lock-icon">&#x1F512;</div>
+    <div class="lock-msg">Qiymetleri gormek ucun<br>ustden valyuta secin</div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-top-left"><span class="dot"></span>SATIS CEDVELI</div>
+      <div class="badge" id="badge">&#x2014;</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Robux (Net)</th>
+          <th id="h1">Qiymet</th>
+          <th id="h2" style="display:none">Qiymet 2</th>
+          <th>Gamepass<br><span style="font-size:0.52rem;opacity:0.7">(Roblox 30%<br>komissiya)</span></th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="box disabled-section calc-area" id="calcBox">
+  <div class="sec-label">&#x1F9EE; Oz miqdarini yaz</div>
+  <div class="calc-inner">
+    <input class="calc-input" type="number" id="calcIn" min="1" max="9999"
+           placeholder="Miqdar (Robux)" oninput="calcPrice()">
+    <div class="calc-result" id="calcOut">Qiymet burada gorunecek</div>
+  </div>
+  <div class="calc-hint" id="calcHint">Cedvelden secim ederek de sifaris vere bilersiniz.</div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">&#x2715;</button>
+    <div class="modal-title">&#x1F6D2; Sifaris ver</div>
+    <div class="modal-rbx" id="modalInfo">Secilen: <b>—</b></div>
+    <a class="discord-btn" href="https://discord.com/channels/1410254074380554332/1496098166385147944" target="_blank">
+      <span class="discord-icon">&#x1F4AC;</span>
+      Discorda kec ve sifaris ver
+    </a>
+    <a class="wa-btn" href="https://whatsapp.com/channel/0029VbCOryJI7Be7biU0mL2w" target="_blank">
+      <span>&#x1F4F2;</span>
+      WhatsApp-a kec ve sifaris ver
+    </a>
+    <div class="modal-note">
+      &#x26A0;&#xFE0F; Linkden kecdikden sonra <b>adinizi yazin</b> ve nece Robux almaq istediginizi bildirin.<br><br>
+      Robuxlar <b>gamepass vasitesile</b> verilib. Odenis etdikden sonra catdirilacaq.
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div>&#9889; Suretli catdirilma &nbsp;&#183;&nbsp; <b>Komissiya menden</b> &nbsp;&#183;&nbsp; Etibarly satis</div>
+  <div style="margin-top:4px;opacity:0.35;font-size:0.68rem">Robux Satis Xidmeti &copy; 2025</div>
+</div>
+
+<script>
+// YENİLENMİŞ GÜNCEL FİYAT LİSTESİ (1.80 AZN = 47.54 TL oranına göre)
+var ROWS = [
+  { r:10,  g:15,   a:0.15, t:4,    u:0.09  },
+  { r:20,  g:29,   a:0.30, t:8,    u:0.18  },
+  { r:30,  g:43,   a:0.45, t:12,   u:0.27  },
+  { r:40,  g:58,   a:0.60, t:16,   u:0.35  },
+  { r:50,  g:72,   a:0.75, t:20,   u:0.44  },
+  { r:100, g:143,  a:1.80, t:48,   u:1.06  },
+  { r:200, g:286,  a:3.50, t:92,   u:2.06  },
+  { r:300, g:429,  a:5.50, t:145,  u:3.24  },
+  { r:400, g:572,  a:6.80, t:180,  u:4.00  },
+  { r:500, g:715,  a:8.50, t:225,  u:5.00  },
+  { r:600, g:858,  a:11.00,t:290,  u:6.47  },
+  { r:700, g:1000, a:12.50,t:330,  u:7.35  },
+  { r:800, g:1143, a:14.00,t:370,  u:8.24  },
+  { r:900, g:1286, a:17.00,t:450,  u:10.00 },
+  { r:1000,g:1429, a:18.00,t:475,  u:10.60 }
+];
+
+var CURRENCIES = [
+  { c:'AZN', flag:'&#x1F1E6;&#x1F1FF;', name:'Manat' },
+  { c:'TL',  flag:'&#x1F1F9;&#x1F1F7;', name:'Lira'  },
+  { c:'USD', flag:'&#x1F1FA;&#x1F1F8;', name:'Dollar'}
+];
+
+var cur  = null;
+var cur2 = null;
+var selectedRow = null;
+
+function getV(row, c) { return c==='AZN'?row.a : c==='TL'?row.t : row.u; }
+function fmt(c, v) {
+  if (c==='AZN') return v.toFixed(2)+' AZN';
+  if (c==='TL')  return Math.round(v)+' TL';
+  return '$'+v.toFixed(2);
+}
+function cls(c) { return c==='AZN'?'v-azn' : c==='TL'?'v-tl' : 'v-usd'; }
+
+function pick(c) {
+  cur = c;
+  if (cur2 === c) { cur2 = null; }
+
+  document.querySelectorAll('.cur-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.c === c);
+  });
+
+  document.getElementById('lock').classList.add('gone');
+  document.getElementById('badge').textContent = c;
+
+  document.getElementById('box2').classList.remove('disabled-section');
+  document.getElementById('calcBox').classList.remove('disabled-section');
+
+  buildCur2();
+  render();
+  calcPrice();
+}
+
+function buildCur2() {
+  var container = document.getElementById('cur2row');
+  container.innerHTML = '';
+
+  var noneBtn = document.createElement('button');
+  noneBtn.className = 'cur2-none' + (cur2 === null ? ' active' : '');
+  noneBtn.innerHTML = '<span style="font-size:1rem">&#x2715;</span>Yox<span class="hint">Gostorme</span>';
+  noneBtn.onclick = function() { cur2 = null; buildCur2(); render(); };
+  container.appendChild(noneBtn);
+
+  CURRENCIES.forEach(function(item) {
+    if (item.c === cur) return;
+    var btn = document.createElement('button');
+    btn.className = 'cur2-btn' + (cur2 === item.c ? ' active' : '');
+    btn.innerHTML = '<span class="flag">'+item.flag+'</span>'+item.c+'<span class="hint">'+item.name+'</span>';
+    btn.onclick = (function(cc){ return function(){ cur2 = cc; buildCur2(); render(); }; })(item.c);
+    container.appendChild(btn);
+  });
+}
+
+function render() {
+  document.getElementById('h1').textContent = 'Qiymet (' + cur + ')';
+  var h2 = document.getElementById('h2');
+  if (cur2) { h2.style.display = ''; h2.textContent = 'Qiymet (' + cur2 + ')'; }
+  else { h2.style.display = 'none'; }
+
+  var tb = document.getElementById('tb');
+  tb.innerHTML = '';
+
+  ROWS.forEach(function(row) {
+    var tr = document.createElement('tr');
+
+    var altTd = cur2
+      ? '<td><span class="'+cls(cur2)+'">'+fmt(cur2, getV(row,cur2))+'</span></td>'
+      : '';
+
+    tr.innerHTML =
+      '<td><span class="rbx">'+row.r+' Robux</span></td>'+
+      '<td><span class="'+cls(cur)+'">'+fmt(cur, getV(row,cur))+'</span></td>'+
+      altTd+
+      '<td><span class="gp">'+row.g+' R</span></td>';
+
+    tr.onclick = (function(r){ return function(){ openModal(r); }; })(row);
+    tb.appendChild(tr);
+  });
+}
+
+function interpVal(val, key) {
+  for (var i = 0; i < ROWS.length; i++) {
+    if (ROWS[i].r === val) return ROWS[i][key];
+  }
+  if (val < ROWS[0].r) {
+    return parseFloat((ROWS[0][key] / ROWS[0].r * val).toFixed(2));
+  }
+  if (val > ROWS[ROWS.length-1].r) {
+    var last = ROWS[ROWS.length-1];
+    var prev = ROWS[ROWS.length-2];
+    var rate = (last[key] - prev[key]) / (last.r - prev.r);
+    return parseFloat((last[key] + rate * (val - last.r)).toFixed(2));
+  }
+  for (var j = 0; j < ROWS.length - 1; j++) {
+    var lo = ROWS[j], hi = ROWS[j+1];
+    if (val > lo.r && val < hi.r) {
+      var ratio = (val - lo.r) / (hi.r - lo.r);
+      return parseFloat((lo[key] + ratio * (hi[key] - lo[key])).toFixed(2));
+    }
+  }
+  return 0;
+}
+
+function calcPrice() {
+  var input = document.getElementById('calcIn');
+  var output = document.getElementById('calcOut');
+  var hint = document.getElementById('calcHint');
+  var val = parseInt(input.value);
+
+  if (!cur || !val || val < 1) {
+    output.className = 'calc-result';
+    output.textContent = 'Qiymet burada gorunecek';
+    hint.innerHTML = 'Cedvelden secim ederek de sifaris vere bilersiniz.';
+    return;
+  }
+
+  var priceMain = interpVal(val, cur === 'AZN' ? 'a' : cur === 'TL' ? 't' : 'u');
+  var gpNeeded  = Math.round(interpVal(val, 'g'));
+
+  var txt = fmt(cur, priceMain);
+  if (cur2) {
+    var price2 = interpVal(val, cur2 === 'AZN' ? 'a' : cur2 === 'TL' ? 't' : 'u');
+    txt += ' / ' + fmt(cur2, price2);
+  }
+
+  output.className = 'calc-result filled';
+  output.textContent = txt;
+
+  hint.innerHTML = '<b>'+val+' Robux</b> ucun alici gamepassi <b>'+gpNeeded+' Robux</b> qoymalidi. Sifaris ucun asagida cedvelden sec.';
+}
+
+function openModal(row) {
+  selectedRow = row;
+  var info = row.r + ' Robux — ' + fmt(cur, getV(row, cur));
+  if (cur2) info += ' / ' + fmt(cur2, getV(row, cur2));
+  document.getElementById('modalInfo').innerHTML = 'Secilen: <b>' + info + '</b>';
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) {
+    document.getElementById('modalBg').classList.remove('open');
+  }
+}
+function closeModalBtn() {
+  document.getElementById('modalBg').classList.remove('open');
+}
+</script>
+</body>
+</html>
